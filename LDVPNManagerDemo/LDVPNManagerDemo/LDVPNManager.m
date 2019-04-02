@@ -7,6 +7,7 @@
 //
 
 #import "LDVPNManager.h"
+// VPN服务器没有设置的参数一概不要填，如果有额外参数自行添加。
 // VPN配置信息
 static NSString *VPNServerAddress = @"xx.xxx.xxx.xxx";  // VPN服务器地址
 static NSString *VPNUserName = @"vpnuser"; // 用户名
@@ -42,7 +43,7 @@ static LDVPNManager *instance;
             p.sharedSecretReference = [self searchKeychainCopyMatching:@"PSK"];
             //            p.localIdentifier = [UIDevice currentDevice].name;
             //            p.remoteIdentifier = @"139.196.217.80";
- 
+            
             p.authenticationMethod = NEVPNIKEAuthenticationMethodSharedSecret;
             p.useExtendedAuthentication = YES;
             p.disconnectOnSleep = NO;
@@ -111,18 +112,18 @@ static LDVPNManager *instance;
     if ([self.delegate respondsToSelector:@selector(LDVPNManager:onVPNStatusChanged:)]) {
         [self.delegate LDVPNManager:self onVPNStatusChanged:state];
     }
-    static BOOL isFirstLoad = YES;
+    //    static BOOL isFirstLoad = YES;
     switch (state) {
         case NEVPNStatusInvalid:
             NSLog(@"无效vpn连接");
             break;
         case NEVPNStatusDisconnected:
             NSLog(@"vpn未连接");
-            // 刚启动的时候会走vpn未连接
-            if (isFirstLoad) {
-                isFirstLoad = NO;
-                return ;
-            }
+            //            // 刚启动的时候会走vpn未连接
+            //            if (isFirstLoad) {
+            //                isFirstLoad = NO;
+            //                return ;
+            //            }
             if ([self.delegate respondsToSelector:@selector(vpnDidDisconnected)]) {
                 [self.delegate vpnDidDisconnected];
             }
@@ -153,17 +154,11 @@ static LDVPNManager *instance;
         }else{
             NSLog(@"Connection established!");
         }
-    }else{
-        if (self.manager.connection.status == NEVPNStatusConnected) {
-            if ([self.delegate respondsToSelector:@selector(vpnDidConnected)]) {
-                [self.delegate vpnDidConnected];
-            }
-        }
     }
 }
 -(void)stopVPNConnect{
     if (self.manager.connection.status>=NEVPNStatusConnecting) {
-//        self.expectedVpnConnect = NO;
+        //        self.expectedVpnConnect = NO;
         [self.manager.connection stopVPNTunnel];
     }
 }
@@ -221,17 +216,17 @@ static NSString * const serviceName = @"AleX.VPNDemo";
             p.serverAddress = VPNServerAddress;
             [self createKeychainValue:VPNPassWord forIdentifier:@"VPN_PASSWORD"];
             p.passwordReference =  [self searchKeychainCopyMatching:@"VPN_PASSWORD"];
-
-//            p.authenticationMethod = NEVPNIKEAuthenticationMethodSharedSecret;
-            p.authenticationMethod = NEVPNIKEAuthenticationMethodCertificate;
-            p.identityData = [NSData dataWithContentsOfFile:[[NSBundle mainBundle]pathForResource:@"hctx" ofType:@"p12"]];
-            p.identityDataPassword = @"com.hctx.vpn";  // p12证书的密码
-//            p.identityDataPassword = xxx;
-//            [self createKeychainValue:VPNSharedSecret forIdentifier:@"PSK"];
-//            p.sharedSecretReference = [self searchKeychainCopyMatching:@"PSK"];
             
-//            p.localIdentifier = @"[VPN local identifier]";
-            p.remoteIdentifier = @"58.222.107.149";
+            //            p.authenticationMethod = NEVPNIKEAuthenticationMethodSharedSecret;
+            p.authenticationMethod = NEVPNIKEAuthenticationMethodCertificate; // 选择证书鉴定
+            p.identityData = [NSData dataWithContentsOfFile:[[NSBundle mainBundle]pathForResource:@"hctx" ofType:@"p12"]]; // 鉴定证书路径
+            p.identityDataPassword = @"com.hctx.vpn";  // p12证书的密码
+            //            p.identityDataPassword = xxx;
+            //            [self createKeychainValue:VPNSharedSecret forIdentifier:@"PSK"];
+            //            p.sharedSecretReference = [self searchKeychainCopyMatching:@"PSK"];
+            
+            //            p.localIdentifier = @"[VPN local identifier]";
+//                        p.remoteIdentifier = @"xxxx";  // IKEv2必填参数
             
             p.useExtendedAuthentication = YES;
             
